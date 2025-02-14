@@ -2,6 +2,7 @@ import AI from "./utils/AI";
 import Config from "./utils/Config";
 import FileWatcher from "./utils/FileWatcher";
 import MusicTag, { MusicTagInfo } from "./utils/MusicTag";
+import NeteaseMusicData from "./utils/NeteaseMusicData";
 
 // 初始化配置实例，传入配置文件路径
 const configInstance = new Config("config/config.yaml");
@@ -16,10 +17,13 @@ fileWatcher.watch(async (filePath) => {
   const musicTag = await MusicTag.read(filePath);
   // 获取搜索关键词
   const keyword = await getSearchKeywords(musicTag, filePath);
+  if (!keyword) return console.error("[MainThread] 未获取到搜索关键词");
+  // 获取音乐标签
+  await NeteaseMusicData.getMusicTags(keyword);
 });
 
 // 获取搜索关键词
-async function getSearchKeywords(musicTag: MusicTagInfo, filePath?: string) {
+async function getSearchKeywords(musicTag: MusicTagInfo, filePath?: string): Promise<string> {
   const keyword = [];
 
   // 先通过音乐标签获取关键词
@@ -33,7 +37,7 @@ async function getSearchKeywords(musicTag: MusicTagInfo, filePath?: string) {
 应按照音乐名称、艺术家、专辑名称的顺序返回，避免搜索到专辑同名歌曲。
 请直接返回我要求的格式，不要附带任何多余的信息。
 文件路径：${filePath}`);
-    return result;
+    return result ?? "";
   }
 
   return keyword.join(",");

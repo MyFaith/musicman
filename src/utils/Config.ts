@@ -11,7 +11,7 @@ export class Config {
       // 使用 yaml 库解析 YAML 内容
       this.config = YAML.parse(fileContents);
     } catch (error) {
-      console.error(`读取配置文件失败：${configPath}`, error);
+      console.error(`[Config] 读取配置文件失败：${configPath}`, error);
       this.config = {};
     }
   }
