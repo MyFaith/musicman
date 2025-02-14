@@ -17,6 +17,9 @@ importers:
       file-type:
         specifier: 18.4.0
         version: 18.4.0
+      flac-tagger:
+        specifier: ^1.0.7
+        version: 1.0.7
       music-metadata:
         specifier: ^10.9.0
         version: 10.9.0
@@ -254,6 +257,9 @@ packages:
     resolution: {integrity: sha512-o6MQrZKTAK6WpvmQk3jqTVUmqxYBxW5bloUfrdH1ZnRFDvvAPNr+l+rgOxM3nkqWT+3khaj3FRMDydWe0xhu+w==}
     engines: {node: '>=14.16'}
 
+  flac-tagger@1.0.7:
+    resolution: {integrity: sha512-zLf2O9SuKYR6EkfyDvhO2551M6J9RFH2jBCjUsTo2JCBOqcV5NjzZEdWcnFizzxseeYdW/lZWSpGd2L8A19Vdg==}
+
   form-data-encoder@1.7.2:
     resolution: {integrity: sha512-qfqtYan3rxrnCk1VYaA4H+Ms9xdpPqvLZa6xmMgFvhO32x7/3J/ExcTd6qpxM0vH2GdMI+poehyBZvqfMTto8A==}
 
@@ -282,6 +288,10 @@ packages:
 
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
+
+  imageinfo@1.0.4:
+    resolution: {integrity: sha512-BJml4q/QCO2187F4UcO/b6hTYIhbq4nnd1XNs65jyCED9em4m6XmeGWDxjewjfJoC7VJABhOdmqb64KA24rLZw==}
+    engines: {node: '>=0.4'}
 
   link@2.1.1:
     resolution: {integrity: sha512-NV3AUVYBovJ6eVQcTeRoPnZSxzt2LOijNd+ugEZKRy/XeQlpTRhVRkuDv5kOlXwMAUx30vfUc7asRFb9RT65yg==}
@@ -578,6 +588,10 @@ snapshots:
       strtok3: 7.1.1
       token-types: 5.0.1
 
+  flac-tagger@1.0.7:
+    dependencies:
+      imageinfo: 1.0.4
+
   form-data-encoder@1.7.2: {}
 
   form-data@4.0.1:
@@ -607,6 +621,8 @@ snapshots:
       safer-buffer: 2.1.2
 
   ieee754@1.2.1: {}
+
+  imageinfo@1.0.4: {}
 
   link@2.1.1: {}
 
