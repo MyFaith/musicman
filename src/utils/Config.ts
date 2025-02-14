@@ -1,18 +1,28 @@
 import fs from "fs";
 import YAML from "yaml";
+import Logger from './Logger';
+
+const logger = new Logger('Config');
 
 export class Config {
   private config: any;
 
   constructor(configPath: string) {
+    logger.info(`加载配置文件: ${configPath}`);
+    if (!fs.existsSync(configPath)) {
+      logger.error(`配置文件不存在: ${configPath}`);
+      throw new Error(`Config file not found: ${configPath}`);
+    }
     try {
       // 同步读取配置文件内容
       const fileContents = fs.readFileSync(configPath, "utf8");
       // 使用 yaml 库解析 YAML 内容
       this.config = YAML.parse(fileContents);
+      logger.debug(`配置文件内容: ${JSON.stringify(this.config)}`);
     } catch (error) {
-      console.error(`[Config] 读取配置文件失败：${configPath}`, error);
-      this.config = {};
+      const message = error instanceof Error ? error.message : String(error);
+      logger.error(`读取配置文件失败: ${message}`, { configPath });
+      throw error;
     }
   }
 
@@ -22,7 +32,12 @@ export class Config {
   }
 
   // 根据点分割的 key 获取对应的配置值，例如 "database.host"
-  public get(key: string): any {
+  public get<T>(key: string): T | undefined {
+    if (!this.config) {
+      logger.error('配置未初始化');
+      throw new Error('Config not initialized');
+    }
+    logger.debug(`获取配置项: ${key}`);
     if (!key) {
       return this.config;
     }
@@ -35,7 +50,7 @@ export class Config {
         return undefined;
       }
     }
-    return result;
+    return result as T | undefined;
   }
 }
 

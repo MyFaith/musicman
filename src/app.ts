@@ -3,26 +3,34 @@ import Config from "./utils/Config";
 import FileWatcher from "./utils/FileWatcher";
 import MusicTag, { MusicTagInfo } from "./utils/MusicTag";
 import NeteaseMusicData from "./utils/NeteaseMusicData";
+import Logger from "./utils/Logger";
 
 // 初始化配置实例，传入配置文件路径
 const configInstance = new Config("config/config.yaml");
 
 // 初始化AI实例
-const ai = new AI(configInstance.get("AI.baseUrl"), configInstance.get("AI.apiKey"), configInstance.get("AI.modelName"));
+const ai = new AI(
+  configInstance.get<string>("AI.baseUrl") ?? "",
+  configInstance.get<string>("AI.apiKey") ?? "",
+  configInstance.get<string>("AI.modelName") ?? "gpt-3.5-turbo"
+);
 
 // 实例化 FileWatcher 并启动监听
-const fileWatcher = new FileWatcher(configInstance.get("directory.source"));
+const fileWatcher = new FileWatcher(configInstance.get<string>("directory.source") ?? "");
 fileWatcher.watch(async (filePath) => {
-  // 读取音乐文件的元数据
-  const musicTag = await MusicTag.read(filePath);
-  // 获取搜索关键词
-  const keyword = await getSearchKeywords(musicTag, filePath);
-  if (!keyword) return console.error("[MainThread] 未获取到搜索关键词");
-  // 获取音乐标签
-  const neteaseMusicTagInfo = await NeteaseMusicData.getMusicTags(keyword);
-  // 整理音乐标签
-  await MusicTag.format(filePath, neteaseMusicTagInfo);
-  // 重命名文件
+  try {
+    const musicTag = await MusicTag.read(filePath);
+    const keyword = await getSearchKeywords(musicTag, filePath);
+    if (!keyword) {
+      logger.error(`未获取到搜索关键词: ${filePath}`);
+      return;
+    }
+    const neteaseMusicTagInfo = await NeteaseMusicData.getMusicTags(keyword);
+    await MusicTag.format(filePath, neteaseMusicTagInfo);
+    logger.info(`文件处理完成: ${filePath}`);
+  } catch (error) {
+    logger.error(`文件处理流程异常: ${filePath}`);
+  }
 });
 
 // 获取搜索关键词
@@ -45,3 +53,8 @@ async function getSearchKeywords(musicTag: MusicTagInfo, filePath?: string): Pro
 
   return keyword.join(",");
 }
+
+const logger = new Logger("Main");
+
+// 替换启动日志：
+logger.info(`Application started - version: ${process.env.npm_package_version}`);

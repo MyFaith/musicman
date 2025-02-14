@@ -1,6 +1,9 @@
 import { parseFile, type IAudioMetadata } from "music-metadata";
 import NodeID3 from "node-id3";
 import { readFlacTags, writeFlacTags, FlacTagMap, PictureType } from "flac-tagger";
+import Logger from "./Logger";
+
+const logger = new Logger("MusicTag");
 
 export interface MusicTagInfo {
   title?: string;
@@ -19,24 +22,32 @@ export interface MusicTagInfo {
 export default class MusicTag {
   // 读取音乐标签
   static async read(filePath: string): Promise<MusicTagInfo> {
-    const metadata = await parseFile(filePath);
-    return {
-      title: metadata.common.title,
-      artists: metadata.common.artists,
-      albumArtists: metadata.common.albumartist?.split(","),
-      album: metadata.common.album,
-      year: metadata.common.year,
-      diskNumber: metadata.common.disk?.no ?? undefined,
-      trackNumber: metadata.common.track?.no ?? undefined,
-      genres: metadata.common.genre,
-      comment: metadata.common.comment?.join("\n"),
-      lyrics: metadata.common.lyrics?.join("\n"),
-      cover: metadata.common.picture?.[0]?.data.toString()
-    };
+    try {
+      logger.debug(`开始读取元数据: ${filePath}`);
+      const metadata = await parseFile(filePath);
+      return {
+        title: metadata.common.title,
+        artists: metadata.common.artists,
+        albumArtists: metadata.common.albumartist?.split(","),
+        album: metadata.common.album,
+        year: metadata.common.year,
+        diskNumber: metadata.common.disk?.no ?? undefined,
+        trackNumber: metadata.common.track?.no ?? undefined,
+        genres: metadata.common.genre,
+        comment: metadata.common.comment?.join("\n"),
+        lyrics: metadata.common.lyrics?.join("\n"),
+        cover: metadata.common.picture?.[0]?.data.toString()
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.error(`读取元数据失败: ${message}`);
+      throw error;
+    }
   }
 
   // 整理音乐标签
   static async format(filePath: string, newTag: MusicTagInfo) {
+    logger.info(`开始格式化文件: ${filePath}`);
     const fileType = filePath.split(".").pop()?.toLowerCase();
 
     try {
@@ -46,8 +57,11 @@ export default class MusicTag {
         await this.writeFLAC(filePath, newTag);
       }
     } catch (error) {
-      console.error(`文件 ${filePath} 标签更新失败:`, error);
+      const message = error instanceof Error ? error.message : String(error);
+      logger.error(`文件标签更新失败: ${message}`);
+      throw error;
     }
+    logger.debug(`格式化完成: ${filePath}`);
   }
 
   // 新增独立MP3写入方法
@@ -97,12 +111,12 @@ export default class MusicTag {
 
       const success = NodeID3.write(tags, filePath);
       if (success) {
-        console.log(`[MusicTag] ${filePath} MP3标签写入成功`);
+        logger.info(`MP3标签写入成功 ${filePath}`);
       } else {
-        throw new Error(`[MusicTag] ${filePath} MP3标签写入失败`);
+        logger.error(`MP3标签写入失败 ${filePath}`);
       }
     } catch (error) {
-      throw new Error(`[MusicTag] 图片处理失败: ${(error as Error).message}`);
+      throw new Error(`图片处理失败: ${(error as Error).message}`);
     }
   }
 
@@ -147,7 +161,7 @@ export default class MusicTag {
         filePath
       );
 
-      console.log(`[MusicTag] ${filePath} FLAC标签写入成功`);
+      logger.info(`FLAC标签写入成功: ${filePath}`);
     } catch (error) {
       throw new Error(`FLAC标签写入失败: ${(error as Error).message}`);
     }

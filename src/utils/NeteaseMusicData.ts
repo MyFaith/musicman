@@ -1,12 +1,16 @@
 import { MusicTagInfo } from "./MusicTag";
+import Logger from './Logger';
+const logger = new Logger('NeteaseAPI');
 
 const API_BASE = "http://localhost:3000"; // 假设本地启动API服务
 
-export default class MusicData {
+export default class NeteaseMusicData {
   // 获取音乐标签
   static async getMusicTags(keyword: string): Promise<MusicTagInfo> {
+    logger.info(`开始搜索网易云数据: ${keyword}`);
     const songs = await this.search(keyword);
     const detail = await this.getDetail(songs);
+    logger.debug(`获取到歌曲数据: ${JSON.stringify(detail)}`);
     return detail;
   }
 
@@ -18,7 +22,8 @@ export default class MusicData {
       // 返回前3条的id
       return data.result.songs.slice(0, 3).map((song: any) => song.id);
     } catch (error) {
-      throw new Error(`[NeteaseMusicData] 搜索失败: ${(error as Error).message}`);
+      logger.error(`搜索失败: ${(error as Error).message}`);
+      throw new Error(`搜索失败: ${(error as Error).message}`);
     }
   }
 
@@ -48,7 +53,8 @@ export default class MusicData {
         cover: song.al.picUrl,
       };
     } catch (error) {
-      throw new Error(`[NeteaseMusicData] 获取详情失败: ${(error as Error).message}`);
+      logger.error(`获取详情失败: ${(error as Error).message}`);
+      throw new Error(`获取详情失败: ${(error as Error).message}`);
     }
   }
 }
