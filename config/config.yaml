@@ -5,6 +5,6 @@ AI:
   modelName: deepseek-v3
 
 # 目录配置
-directory: 
+directory:
   source: /Users/faith/Music/source
   target: /Users/faith/Music/target

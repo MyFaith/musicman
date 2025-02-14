@@ -21,8 +21,9 @@
   },
   "dependencies": {
     "chokidar": "^4.0.3",
-    "music-metadata": "^10.9.0",
     "file-type": "^18.4.0",
+    "music-metadata": "^10.9.0",
+    "node-id3": "^0.2.7",
     "openai": "^4.85.1",
     "yaml": "^2.7.0"
   },

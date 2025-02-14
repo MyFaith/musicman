@@ -38,7 +38,7 @@ export default class MusicData {
         title: song.name,
         artists: song.ar.map((a: any) => a.name),
         albumArtists: song.ar.map((a: any) => a.name),
-        album: song.al,
+        album: song.al.name,
         year: new Date(song.publishTime).getFullYear(),
         diskNumber: Number(song.cd),
         trackNumber: Number(song.no),

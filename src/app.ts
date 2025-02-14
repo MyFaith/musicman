@@ -19,7 +19,10 @@ fileWatcher.watch(async (filePath) => {
   const keyword = await getSearchKeywords(musicTag, filePath);
   if (!keyword) return console.error("[MainThread] 未获取到搜索关键词");
   // 获取音乐标签
-  await NeteaseMusicData.getMusicTags(keyword);
+  const neteaseMusicTagInfo = await NeteaseMusicData.getMusicTags(keyword);
+  // 整理音乐标签
+  await MusicTag.format(filePath, neteaseMusicTagInfo);
+  // 重命名文件
 });
 
 // 获取搜索关键词
