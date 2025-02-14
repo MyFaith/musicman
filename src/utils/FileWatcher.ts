@@ -1,7 +1,7 @@
 import fs from "fs";
 import chokidar from "chokidar";
 
-export class FileWatcher {
+export default class FileWatcher {
   private source: string;
 
   constructor(source: string) {

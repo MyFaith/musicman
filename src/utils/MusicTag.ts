@@ -14,7 +14,7 @@ export interface MusicTagInfo {
   cover?: string;
 }
 
-export class MusicTag {
+export default class MusicTag {
   static async read(filePath: string): Promise<MusicTagInfo> {
     const metadata = await parseFile(filePath);
     return {
@@ -28,7 +28,7 @@ export class MusicTag {
       genres: metadata.common.genre,
       comment: metadata.common.comment?.join("\n"),
       lyrics: metadata.common.lyrics?.join("\n"),
-      cover: metadata.common.picture?.[0]?.data.toString("base64")
+      cover: metadata.common.picture?.[0]?.data.toString()
     };
   }
 }

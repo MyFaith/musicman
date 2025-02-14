@@ -22,7 +22,11 @@
   "dependencies": {
     "chokidar": "^4.0.3",
     "music-metadata": "^10.9.0",
+    "file-type": "^18.4.0",
     "openai": "^4.85.1",
     "yaml": "^2.7.0"
+  },
+  "resolutions": {
+    "file-type": "18.4.0"
   }
 }

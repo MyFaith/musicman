@@ -1,0 +1,17 @@
+{
+  // 使用 IntelliSense 了解相关属性。
+  // 悬停以查看现有属性的描述。
+  // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node", // 使用Node.js调试器
+      "request": "launch", // 启动模式
+      "name": "Run dev:watch", // 自定义名称
+      "runtimeExecutable": "pnpm", // 指定运行程序为npm
+      "runtimeArgs": ["run", "dev:watch"], // 参数传递npm脚本
+      "skipFiles": ["<node_internals>/**"], // 跳过Node内部文件
+      "console": "integratedTerminal" // 在集成终端运行
+    }
+  ]
+}
