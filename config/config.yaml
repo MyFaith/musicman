@@ -3,3 +3,8 @@ AI:
   baseUrl: https://qianfan.baidubce.com/v2
   apiKey: bce-v3/ALTAK-gxmbLJQhX9iD4p6OGMIy7/8f62c4050c143ae08c40d25affdae4751cf27d82
   modelName: deepseek-v3
+
+# 目录配置
+directory: 
+  source: /Users/faith/Music/source
+  target: /Users/faith/Music/target

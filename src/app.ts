@@ -1,15 +1,15 @@
 import AI from "./utils/AI";
 import Config from "./utils/Config";
+import { FileWatcher } from "./utils/FileWatcher";
 
-// 初始化配置文件实例
-const config = new Config("./config/config.yaml");
+// 初始化配置实例，传入配置文件路径
+const configInstance = new Config("config/config.yaml");
 
-// 获取配置
-const AI_BASE_URL = config.get("AI.baseUrl");
-const AI_API_KEY = config.get("AI.apiKey");
-const AI_MODEL_NAME = config.get("AI.modelName");
+// 实例化 FileWatcher 并启动监听
+const fileWatcher = new FileWatcher(configInstance.get("directory.source"));
+fileWatcher.watch((filePath) => {});
 
 // 初始化AI实例
-const ai = new AI(AI_BASE_URL, AI_API_KEY, AI_MODEL_NAME);
+// const ai = new AI(configInstance.get("AI.baseUrl"), configInstance.get("AI.apiKey"), configInstance.get("AI.modelName"));
 
 (async () => {})();
