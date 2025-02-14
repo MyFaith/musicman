@@ -12,7 +12,7 @@ const configInstance = new Config("config/config.yaml");
 const ai = new AI(
   configInstance.get<string>("AI.baseUrl") ?? "",
   configInstance.get<string>("AI.apiKey") ?? "",
-  configInstance.get<string>("AI.modelName") ?? "gpt-3.5-turbo"
+  configInstance.get<string>("AI.modelName") ?? ""
 );
 
 // 实例化 FileWatcher 并启动监听
