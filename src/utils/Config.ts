@@ -21,7 +21,7 @@ export class Config {
       logger.debug(`配置文件内容: ${JSON.stringify(this.config)}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      logger.error(`读取配置文件失败: ${message}`, { configPath });
+      logger.error(`读取配置文件失败: ${message}`);
       throw error;
     }
   }

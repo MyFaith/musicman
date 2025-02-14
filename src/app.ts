@@ -4,6 +4,7 @@ import FileWatcher from "./utils/FileWatcher";
 import MusicTag, { MusicTagInfo } from "./utils/MusicTag";
 import NeteaseMusicData from "./utils/NeteaseMusicData";
 import Logger from "./utils/Logger";
+import Mover from "./utils/Mover";
 
 // 初始化配置实例，传入配置文件路径
 const configInstance = new Config("config/config.yaml");
@@ -25,9 +26,14 @@ fileWatcher.watch(async (filePath) => {
       logger.error(`未获取到搜索关键词: ${filePath}`);
       return;
     }
+    // 获取网易云音乐标签
     const neteaseMusicTagInfo = await NeteaseMusicData.getMusicTags(keyword);
-    await MusicTag.format(filePath, neteaseMusicTagInfo);
-    logger.info(`文件处理完成: ${filePath}`);
+    // 整理文件
+    const moverInstance = new Mover(configInstance, neteaseMusicTagInfo);
+    const targetPath = await moverInstance.handleFile(filePath);
+    // 写入音乐标签
+    await MusicTag.format(targetPath, neteaseMusicTagInfo);
+    logger.info(`文件处理完成: ${targetPath}`);
   } catch (error) {
     logger.error(`文件处理流程异常: ${filePath}`);
   }

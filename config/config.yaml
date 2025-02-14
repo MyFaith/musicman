@@ -8,3 +8,14 @@ AI:
 directory:
   source: /Users/faith/Music/source
   target: /Users/faith/Music/target
+
+# 整理配置
+mover:
+  # 是否启用整理
+  enabled: true
+  # 命名模板 title: 标题 artists: 艺术家 albumArtists: 专辑艺术家 album: 专辑 year: 年份 diskNumber: 碟片号 trackNumber: 曲目号 genres: 流派
+  namingTemplate: "{artists}/{album}/{trackNumber}.{title}{extension}"
+  # 是否启用重命名
+  rename: true
+  # 整理方式 copy 复制，move 移动
+  type: move

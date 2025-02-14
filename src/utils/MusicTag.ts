@@ -1,6 +1,6 @@
 import { parseFile, type IAudioMetadata } from "music-metadata";
 import NodeID3 from "node-id3";
-import { readFlacTags, writeFlacTags, FlacTagMap, PictureType } from "flac-tagger";
+import { writeFlacTags, FlacTagMap, PictureType } from "flac-tagger";
 import Logger from "./Logger";
 
 const logger = new Logger("MusicTag");
@@ -47,7 +47,7 @@ export default class MusicTag {
 
   // 整理音乐标签
   static async format(filePath: string, newTag: MusicTagInfo) {
-    logger.info(`开始格式化文件: ${filePath}`);
+    logger.info(`开始更新文件标签: ${filePath}`);
     const fileType = filePath.split(".").pop()?.toLowerCase();
 
     try {
