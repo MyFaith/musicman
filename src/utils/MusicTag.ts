@@ -47,22 +47,40 @@ export default class MusicTag {
 
   // 统一写入方法
   static async format(filePath: string, newTag: MusicTagInfo) {
-
     try {
       const file = await File.createFromPath(filePath);
       const tag = file.tag;
 
-      // 更新文本标签
-      tag.title = newTag.title || "";
-      tag.performers = newTag.artists || [];
-      tag.albumArtists = newTag.albumArtists || [];
-      tag.album = newTag.album || "";
-      if (newTag.year) tag.year = newTag.year;
-      if (newTag.diskNumber) tag.disc = newTag.diskNumber;
-      if (newTag.trackNumber) tag.track = newTag.trackNumber;
-      tag.genres = newTag.genres || [];
-      tag.comment = newTag.comment || "";
-      tag.lyrics = newTag.lyrics || "";
+      if (!tag.title) {
+        tag.title = newTag.title || "";
+      }
+      if (tag.performers.length === 0) {
+        tag.performers = newTag.artists || [];
+      }
+      if (tag.albumArtists.length === 0) {
+        tag.albumArtists = tag.performers;
+      }
+      if (!tag.album) {
+        tag.album = newTag.album || "";
+      }
+      if (tag.year === 0) {
+        tag.year = newTag.year || 0;
+      }
+      if (tag.disc === 0) {
+        tag.disc = newTag.diskNumber || 0;
+      }
+      if (tag.track === 0) {
+        tag.track = newTag.trackNumber || 0;
+      }
+      if (tag.genres.length === 0) {
+        tag.genres = newTag.genres || [];
+      }
+      if (!tag.comment) {
+        tag.comment = newTag.comment || "";
+      }
+      if (!tag.lyrics) {
+        tag.lyrics = newTag.lyrics || "";
+      }
 
       // 处理封面图片
       if (newTag.cover) {
