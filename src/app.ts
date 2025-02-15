@@ -5,6 +5,9 @@ import MusicTag, { MusicTagInfo } from "./utils/MusicTag";
 import NeteaseMusicData from "./utils/NeteaseMusicData";
 import Logger from "./utils/Logger";
 import Mover from "./utils/Mover";
+import { Tag } from "node-taglib-sharp";
+import path from "path";
+import fs from "fs";
 
 // 初始化配置实例，传入配置文件路径
 const configInstance = new Config("config/config.yaml");
@@ -28,16 +31,39 @@ fileWatcher.watch(async (filePath) => {
     }
     // 获取网易云音乐标签
     const neteaseMusicTagInfo = await NeteaseMusicData.getMusicTags(keyword);
-    // 整理文件
-    const moverInstance = new Mover(configInstance, neteaseMusicTagInfo);
-    const targetPath = await moverInstance.handleFile(filePath);
-    // 写入音乐标签
-    await MusicTag.format(targetPath, neteaseMusicTagInfo);
-    logger.debug(`文件处理完成: ${targetPath}`);
+    // 判断是move还是copy
+    const isMove = configInstance.get<string>("mover.type") === "move";
+    if (isMove) {
+      // 移动模式，先写标签再整理
+      const musicTag: Tag = await MusicTag.format(filePath, neteaseMusicTagInfo);
+      // 移动文件
+      const moverInstance = new Mover(configInstance, musicTag);
+      const targetPath = await moverInstance.handleFile(filePath);
+      logger.info(`文件处理完成: ${targetPath}`);
+    } else {
+      // 复制模式，先拷贝出一个临时文件，再写标签
+      const tempPath = generateTempFile(filePath);
+      // 写临时文件标签
+      const musicTag: Tag = await MusicTag.format(tempPath, neteaseMusicTagInfo);
+      // 重命名临时文件到目标路径
+      const moverInstance = new Mover(configInstance, musicTag);
+      const targetPath = await moverInstance.handleFile(tempPath);
+      logger.info(`文件处理完成: ${targetPath}`);
+    }
   } catch (error) {
     logger.error(`文件处理流程异常: ${filePath}`);
   }
 });
+
+// 生成临时文件（复制模式使用）
+function generateTempFile(filePath: string) {
+  const tempDir = configInstance.get<string>("directory.target") || "";
+  const fileName = Date.now();
+  const ext = path.extname(filePath);
+  const tempPath = path.join(tempDir, `${fileName}${ext}`);
+  fs.copyFileSync(filePath, tempPath);
+  return tempPath;
+}
 
 // 获取搜索关键词
 async function getSearchKeywords(musicTag: MusicTagInfo, filePath?: string): Promise<string> {

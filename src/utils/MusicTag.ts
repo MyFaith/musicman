@@ -1,4 +1,4 @@
-import { File, IPicture, PictureType, ByteVector } from "node-taglib-sharp";
+import { File, IPicture, PictureType, ByteVector, Tag } from "node-taglib-sharp";
 import Logger from "./Logger";
 
 const logger = new Logger("MusicTag");
@@ -46,10 +46,10 @@ export default class MusicTag {
   }
 
   // 统一写入方法
-  static async format(filePath: string, newTag: MusicTagInfo) {
+  static async format(filePath: string, newTag: MusicTagInfo): Promise<Tag> {
     try {
       const file = await File.createFromPath(filePath);
-      const tag = file.tag;
+      const tag: Tag = file.tag;
 
       if (!tag.title) {
         tag.title = newTag.title || "";
@@ -91,6 +91,8 @@ export default class MusicTag {
       // 保存修改
       await file.save();
       logger.debug(`标签更新成功: ${filePath}`);
+      // 返回tag
+      return tag;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       logger.error(`文件标签更新失败: ${message}`);

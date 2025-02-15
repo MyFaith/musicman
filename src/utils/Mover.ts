@@ -1,15 +1,16 @@
 import fs from "fs";
 import Logger from "./Logger";
 import Config from "./Config";
-import { MusicTagInfo } from "./MusicTag";
 import path from "path";
+import { Tag } from "node-taglib-sharp";
+import { MusicTagInfo } from "./MusicTag";
 const logger = new Logger("Mover");
 
 export default class Mover {
   private config: Config;
-  private musicTag: MusicTagInfo;
+  private musicTag: Tag;
 
-  constructor(config: Config, musicTag: MusicTagInfo) {
+  constructor(config: Config, musicTag: Tag) {
     this.config = config;
     this.musicTag = musicTag;
   }
@@ -21,19 +22,16 @@ export default class Mover {
       return filePath;
     }
     const targetPath = this.generateTargetPath(filePath);
-    if (this.config.get("mover.type") === "move") {
-      fs.renameSync(filePath, targetPath);
-    } else {
-      fs.copyFileSync(filePath, targetPath);
-    }
-    logger.info(`文件整理完成: ${filePath} -> ${targetPath}`);
+    fs.renameSync(filePath, targetPath);
+    logger.debug(`文件整理完成: ${filePath} -> ${targetPath}`);
     return targetPath;
   }
 
+  // 生成目标路径
   private generateTargetPath(filePath: string) {
     const fileName = filePath.split("/").pop() || "";
     const targetDir = this.config.get<string>("directory.target") || "";
-    
+
     // 获取配置参数
     const shouldRename = this.config.get<boolean>("mover.rename") || false;
     const template = this.config.get<string>("mover.namingTemplate") || "{artist} - {title}{extension}";
@@ -44,9 +42,9 @@ export default class Mover {
 
     // 替换模板变量（保留路径分隔符）
     let relativePath = template.replace(/\{(\w+)\}/g, (_, key) => {
-      const value = this.musicTag[key as keyof MusicTagInfo];
+      const value = this.musicTag[key as keyof Tag];
       // 处理数组类型值时用逗号连接（保留原路径分隔符）
-      return Array.isArray(value) ? value.join(", ") : value?.toString() || "";
+      return Array.isArray(value) ? value[0].toString() : value?.toString() || "";
     });
 
     // 添加文件扩展名
@@ -55,7 +53,7 @@ export default class Mover {
 
     // 生成完整路径并标准化
     let fullPath = path.join(targetDir, relativePath);
-    
+
     // 创建目录结构（关键修改）
     const dirPath = path.dirname(fullPath);
     if (!fs.existsSync(dirPath)) {
@@ -72,10 +70,7 @@ export default class Mover {
     let counter = 1;
     while (fs.existsSync(finalPath)) {
       const baseName = path.basename(fullPath, ext);
-      finalPath = path.join(
-        path.dirname(fullPath),
-        `${baseName}_${counter}${ext}`
-      );
+      finalPath = path.join(path.dirname(fullPath), `${baseName}_${counter}${ext}`);
       counter++;
     }
 
