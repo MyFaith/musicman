@@ -9,9 +9,14 @@ RUN apk add --no-cache \
   libgcc \
   libstdc++
 
+RUN npm -g install tsx
+
 # 设置工作目录
 WORKDIR /app
 COPY . .
+
+# 暴露目录与配置文件
+VOLUME [ "/music/source", "/music/target", "/app/config" ]
 
 # 设置非root用户
 RUN chown -R node:node /app
