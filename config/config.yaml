@@ -18,4 +18,4 @@ mover:
   # 是否启用重命名
   rename: true
   # 整理方式 copy 复制，move 移动
-  type: move
+  type: copy

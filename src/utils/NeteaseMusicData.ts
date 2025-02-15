@@ -1,6 +1,6 @@
 import { MusicTagInfo } from "./MusicTag";
-import Logger from './Logger';
-const logger = new Logger('NeteaseAPI');
+import Logger from "./Logger";
+const logger = new Logger("NeteaseAPI");
 
 const API_BASE = "http://localhost:3000"; // 假设本地启动API服务
 
@@ -10,7 +10,7 @@ export default class NeteaseMusicData {
     logger.info(`开始搜索网易云数据: ${keyword}`);
     const songs = await this.search(keyword);
     const detail = await this.getDetail(songs);
-    logger.debug(`获取到歌曲数据: ${JSON.stringify(detail)}`);
+    logger.debug(`获取到歌曲数据ID: ${songs.join(",")}`);
     return detail;
   }
 
@@ -50,7 +50,7 @@ export default class NeteaseMusicData {
         genres: [],
         comment: "",
         lyrics: lyricData.lrc?.lyric,
-        cover: song.al.picUrl,
+        cover: song.al.picUrl
       };
     } catch (error) {
       logger.error(`获取详情失败: ${(error as Error).message}`);

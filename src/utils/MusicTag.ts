@@ -47,7 +47,6 @@ export default class MusicTag {
 
   // 统一写入方法
   static async format(filePath: string, newTag: MusicTagInfo) {
-    logger.info(`开始更新文件标签: ${filePath}`);
 
     try {
       const file = await File.createFromPath(filePath);
@@ -79,19 +78,6 @@ export default class MusicTag {
       logger.error(`文件标签更新失败: ${message}`);
       throw error;
     }
-  }
-
-  // 辅助方法：拆分多值标签
-  private static splitMultiValue(value?: string): string[] | undefined {
-    return value
-      ?.split(/;|,|\//)
-      .map((s) => s.trim())
-      .filter(Boolean);
-  }
-
-  // 辅助方法：合并多值标签
-  private static joinMultiValue(values?: string[]): string {
-    return values?.join("; ") || "";
   }
 
   // 获取封面图片
