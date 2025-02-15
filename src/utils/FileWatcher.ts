@@ -37,7 +37,7 @@ export default class FileWatcher {
       const stabilityChecker = new StabilityChecker(filePath);
       stabilityChecker.check()
         .then(() => {
-          logger.info(`文件已就绪: ${filePath}`);
+          logger.debug(`文件已就绪: ${filePath}`);
           callback(filePath);
         })
         .catch((err) => {

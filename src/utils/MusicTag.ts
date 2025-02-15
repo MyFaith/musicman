@@ -72,7 +72,7 @@ export default class MusicTag {
 
       // 保存修改
       await file.save();
-      logger.info(`标签更新成功: ${filePath}`);
+      logger.debug(`标签更新成功: ${filePath}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       logger.error(`文件标签更新失败: ${message}`);

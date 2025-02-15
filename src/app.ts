@@ -33,7 +33,7 @@ fileWatcher.watch(async (filePath) => {
     const targetPath = await moverInstance.handleFile(filePath);
     // 写入音乐标签
     await MusicTag.format(targetPath, neteaseMusicTagInfo);
-    logger.info(`文件处理完成: ${targetPath}`);
+    logger.debug(`文件处理完成: ${targetPath}`);
   } catch (error) {
     logger.error(`文件处理流程异常: ${filePath}`);
   }
