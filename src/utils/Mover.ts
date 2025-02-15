@@ -34,7 +34,7 @@ export default class Mover {
 
     // 获取配置参数
     const shouldRename = this.config.get<boolean>("mover.rename") || false;
-    const template = this.config.get<string>("mover.namingTemplate") || "{artist} - {title}{extension}";
+    const template = this.config.get<string>("mover.namingTemplate") || "{performers}/{album}/{track}.{title}{extension}";
 
     if (!shouldRename) {
       return path.join(targetDir, fileName);
