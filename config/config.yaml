@@ -1,13 +1,13 @@
 # AI配置
 AI:
-  baseUrl: https://api.deepseek.com/v1
-  apiKey: sk-11111111111111111111111111111111
-  modelName: deepseek-chat
+  baseUrl: <AI_BASE_URL>
+  apiKey: <AI_API_KEY>
+  modelName: <AI_MODEL_NAME>
 
 # 目录配置
 directory:
-  source: /Users/faith/Music/source
-  target: /Users/faith/Music/target
+  source: /music/source
+  target: /music/target
 
 # 整理配置
 mover:

@@ -3,7 +3,6 @@ import Logger from "./Logger";
 import Config from "./Config";
 import path from "path";
 import { Tag } from "node-taglib-sharp";
-import { MusicTagInfo } from "./MusicTag";
 const logger = new Logger("Mover");
 
 export default class Mover {
