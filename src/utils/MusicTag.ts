@@ -1,6 +1,4 @@
-import { parseFile, type IAudioMetadata } from "music-metadata";
-import NodeID3 from "node-id3";
-import { writeFlacTags, FlacTagMap, PictureType } from "flac-tagger";
+import { File, IPicture, PictureType, ByteVector } from "node-taglib-sharp";
 import Logger from "./Logger";
 
 const logger = new Logger("MusicTag");
@@ -20,23 +18,25 @@ export interface MusicTagInfo {
 }
 
 export default class MusicTag {
-  // 读取音乐标签
+  // 统一读取方法
   static async read(filePath: string): Promise<MusicTagInfo> {
     try {
       logger.debug(`开始读取元数据: ${filePath}`);
-      const metadata = await parseFile(filePath);
+      const file = await File.createFromPath(filePath);
+      const tag = file.tag;
+
       return {
-        title: metadata.common.title,
-        artists: metadata.common.artists,
-        albumArtists: metadata.common.albumartist?.split(","),
-        album: metadata.common.album,
-        year: metadata.common.year,
-        diskNumber: metadata.common.disk?.no ?? undefined,
-        trackNumber: metadata.common.track?.no ?? undefined,
-        genres: metadata.common.genre,
-        comment: metadata.common.comment?.join("\n"),
-        lyrics: metadata.common.lyrics?.join("\n"),
-        cover: metadata.common.picture?.[0]?.data.toString()
+        title: tag.title || undefined,
+        artists: tag.performers,
+        albumArtists: tag.albumArtists,
+        album: tag.album || undefined,
+        year: tag.year || undefined,
+        diskNumber: tag.disc,
+        trackNumber: tag.track,
+        genres: tag.genres,
+        comment: tag.comment || undefined,
+        lyrics: tag.lyrics || undefined,
+        cover: this.getCoverImage(file)
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -45,129 +45,87 @@ export default class MusicTag {
     }
   }
 
-  // 整理音乐标签
+  // 统一写入方法
   static async format(filePath: string, newTag: MusicTagInfo) {
     logger.info(`开始更新文件标签: ${filePath}`);
-    const fileType = filePath.split(".").pop()?.toLowerCase();
 
     try {
-      if (fileType === "mp3") {
-        await this.writeMP3(filePath, newTag);
-      } else if (fileType === "flac") {
-        await this.writeFLAC(filePath, newTag);
+      const file = await File.createFromPath(filePath);
+      const tag = file.tag;
+
+      // 更新文本标签
+      tag.title = newTag.title || "";
+      tag.performers = newTag.artists || [];
+      tag.albumArtists = newTag.albumArtists || [];
+      tag.album = newTag.album || "";
+      if (newTag.year) tag.year = newTag.year;
+      if (newTag.diskNumber) tag.disc = newTag.diskNumber;
+      if (newTag.trackNumber) tag.track = newTag.trackNumber;
+      tag.genres = newTag.genres || [];
+      tag.comment = newTag.comment || "";
+      tag.lyrics = newTag.lyrics || "";
+
+      // 处理封面图片
+      if (newTag.cover) {
+        const picture = await this.createPicture(newTag.cover);
+        tag.pictures = [picture];
       }
+
+      // 保存修改
+      await file.save();
+      logger.info(`标签更新成功: ${filePath}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       logger.error(`文件标签更新失败: ${message}`);
       throw error;
     }
-    logger.debug(`格式化完成: ${filePath}`);
   }
 
-  // 新增独立MP3写入方法
-  static async writeMP3(filePath: string, tagInfo: MusicTagInfo): Promise<void> {
-    try {
-      // 新增：处理图片URL
-      let imageBuffer: Buffer | undefined;
-      if (tagInfo.cover) {
-        // 判断是否是URL
-        if (tagInfo.cover.startsWith("http")) {
-          const response = await fetch(tagInfo.cover);
-          const arrayBuffer = await response.arrayBuffer();
-          imageBuffer = Buffer.from(arrayBuffer);
-        } else {
-          // 假设是base64字符串
-          imageBuffer = Buffer.from(tagInfo.cover, "base64");
-        }
-      }
+  // 辅助方法：拆分多值标签
+  private static splitMultiValue(value?: string): string[] | undefined {
+    return value
+      ?.split(/;|,|\//)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
 
-      const tags: NodeID3.Tags = {
-        title: tagInfo.title,
-        artist: tagInfo.artists?.join("; "),
-        performerInfo: tagInfo.albumArtists?.join("; "),
-        album: tagInfo.album,
-        year: tagInfo.year?.toString(),
-        trackNumber: tagInfo.trackNumber?.toString(),
-        partOfSet: tagInfo.diskNumber?.toString(),
-        genre: tagInfo.genres?.join("; "),
-        comment: {
-          language: "eng",
-          text: tagInfo.comment || ""
-        },
-        unsynchronisedLyrics: {
-          language: "eng",
-          text: tagInfo.lyrics?.toString() || ""
-        },
-        generalObject: [],
-        image: imageBuffer
-          ? {
-              mime: this.getMimeType(imageBuffer),
-              type: { id: 3, name: "Cover" },
-              description: "Cover",
-              imageBuffer
-            }
-          : undefined
-      };
+  // 辅助方法：合并多值标签
+  private static joinMultiValue(values?: string[]): string {
+    return values?.join("; ") || "";
+  }
 
-      const success = NodeID3.write(tags, filePath);
-      if (success) {
-        logger.info(`MP3标签写入成功 ${filePath}`);
-      } else {
-        logger.error(`MP3标签写入失败 ${filePath}`);
-      }
-    } catch (error) {
-      throw new Error(`图片处理失败: ${(error as Error).message}`);
+  // 获取封面图片
+  private static getCoverImage(file: File): string | undefined {
+    const picture = file.tag.pictures?.[0];
+    if (picture) {
+      return `data:${picture.mimeType};base64,${picture.data}`;
     }
   }
 
-  // 修改FLAC写入方法
-  static async writeFLAC(filePath: string, tagInfo: MusicTagInfo): Promise<void> {
-    try {
-      const tagMap: FlacTagMap = {
-        TITLE: tagInfo.title ? [tagInfo.title] : [],
-        ARTIST: tagInfo.artists?.join("; ") || [],
-        ALBUMARTIST: tagInfo.albumArtists?.join("; ") || [],
-        ALBUM: tagInfo.album ? [tagInfo.album] : [],
-        DATE: tagInfo.year ? [tagInfo.year.toString()] : [],
-        DISCNUMBER: tagInfo.diskNumber ? [tagInfo.diskNumber.toString()] : [],
-        TRACKNUMBER: tagInfo.trackNumber ? [tagInfo.trackNumber.toString()] : [],
-        GENRE: tagInfo.genres?.join("; ") || [],
-        COMMENT: tagInfo.comment ? [tagInfo.comment] : [],
-        LYRICS: tagInfo.lyrics ? [tagInfo.lyrics] : []
-      };
+  // 创建图片对象
+  private static async createPicture(cover: string): Promise<IPicture> {
+    let buffer: Buffer;
 
-      let coverBuffer: Buffer | undefined;
-      if (tagInfo.cover) {
-        if (tagInfo.cover.startsWith("http")) {
-          const response = await fetch(tagInfo.cover);
-          coverBuffer = Buffer.from(await response.arrayBuffer());
-        } else {
-          coverBuffer = Buffer.from(tagInfo.cover, "base64");
-        }
-      }
-
-      await writeFlacTags(
-        {
-          tagMap,
-          picture: coverBuffer
-            ? {
-                buffer: coverBuffer,
-                pictureType: PictureType.FrontCover,
-                mime: this.getMimeType(coverBuffer),
-                description: "Cover"
-              }
-            : undefined
-        },
-        filePath
-      );
-
-      logger.info(`FLAC标签写入成功: ${filePath}`);
-    } catch (error) {
-      throw new Error(`FLAC标签写入失败: ${(error as Error).message}`);
+    if (cover.startsWith("http")) {
+      const response = await fetch(cover);
+      buffer = Buffer.from(await response.arrayBuffer());
+    } else if (cover.startsWith("data:")) {
+      const base64Data = cover.split(",")[1];
+      buffer = Buffer.from(base64Data, "base64");
+    } else {
+      buffer = Buffer.from(cover, "base64");
     }
+
+    return {
+      data: ByteVector.fromByteArray(buffer),
+      type: PictureType.FrontCover,
+      mimeType: this.getMimeType(buffer),
+      description: "Cover",
+      filename: "cover" + this.getFileExtension(buffer)
+    };
   }
 
-  // 新增MIME类型检测方法
+  // 获取MIME类型
   private static getMimeType(buffer: Buffer): string {
     const signature = buffer.toString("hex", 0, 4);
     switch (signature) {
@@ -182,5 +140,11 @@ export default class MusicTag {
       default:
         return "application/octet-stream";
     }
+  }
+
+  // 获取文件扩展名
+  private static getFileExtension(buffer: Buffer): string {
+    const mime = this.getMimeType(buffer);
+    return mime === "image/jpeg" ? ".jpg" : mime === "image/png" ? ".png" : mime === "image/gif" ? ".gif" : "";
   }
 }

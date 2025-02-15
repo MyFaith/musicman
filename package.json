@@ -22,9 +22,7 @@
   "dependencies": {
     "chokidar": "^4.0.3",
     "file-type": "^18.4.0",
-    "flac-tagger": "^1.0.7",
-    "music-metadata": "^10.9.0",
-    "node-id3": "^0.2.7",
+    "node-taglib-sharp": "^6.0.1",
     "openai": "^4.85.1",
     "yaml": "^2.7.0",
     "winston": "^3.13.0",
